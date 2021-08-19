@@ -12,6 +12,6 @@ namespace ProEventos.API.Data
         public DataContext(DbContextOptions options) : base (options)
         {
         }
-        DbSet<Evento> Eventos { get; set; }
+        public DbSet<Evento> Eventos { get; set; }
     }
 }
