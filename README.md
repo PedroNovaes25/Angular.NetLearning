@@ -1,2 +1,2 @@
-# Angular.NetLearning
-Aprendendo SPA e mesclando com .NET
+#  Asp.Net Core C#
+Criando uma API .ASP.Net Core seguindo boas práticas
