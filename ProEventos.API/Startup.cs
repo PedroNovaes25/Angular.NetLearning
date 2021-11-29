@@ -10,6 +10,7 @@ using ProEventos.Application.Interfaces;
 using ProEventos.Persistence.DBContext;
 using ProEventos.Persistence.Interfaces;
 using ProEventos.Persistence.Storage;
+using System;
 
 namespace ProEventos.API
 {
@@ -32,14 +33,16 @@ namespace ProEventos.API
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "ProEventos.API", Version = "v1" });
             });
 
-            services.AddScoped<IEventoService, EventoService>();
-            services.AddScoped<IGeralPersist, GeralPersist>();  
-            services.AddScoped<IEventoPersist, EventoPersist>();
-
             services.AddControllers()
                 .AddNewtonsoftJson(x => x.SerializerSettings.ReferenceLoopHandling =
                         Newtonsoft.Json.ReferenceLoopHandling.Ignore
                     );
+
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            services.AddScoped<IEventoService, EventoService>();
+            services.AddScoped<IGeralPersist, GeralPersist>();
+            services.AddScoped<IEventoPersist, EventoPersist>();
 
             services.AddCors();
         }

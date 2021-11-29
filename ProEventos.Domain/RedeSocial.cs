@@ -1,4 +1,6 @@
-﻿namespace ProEventos.Domain
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ProEventos.Domain
 {
     public class RedeSocial
     {

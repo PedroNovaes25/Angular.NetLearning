@@ -32,7 +32,7 @@ namespace ProEventos.Persistence.Storage
                     query = query.Include(e => e.EventoPalestrante)
                         .ThenInclude(ep => ep.Palestrante);
                 
-                query = query.AsNoTracking().OrderBy(e => e.Id);
+                query = query.AsNoTracking().OrderBy(e => e.EventoCodigo);
 
                 return await query.ToArrayAsync();
             //}
@@ -50,7 +50,7 @@ namespace ProEventos.Persistence.Storage
                     query = query.Include(e => e.EventoPalestrante)
                         .ThenInclude(ep => ep.Palestrante);
                 
-                query = query.AsNoTracking().OrderBy(e => e.Id)
+                query = query.AsNoTracking().OrderBy(e => e.EventoCodigo)
                     .Where(e => e.Tema.ToLower()
                     .Contains(tema.ToLower()));
 
@@ -70,8 +70,8 @@ namespace ProEventos.Persistence.Storage
                     query = query.Include(e => e.EventoPalestrante)
                         .ThenInclude(ep => ep.Palestrante);
 
-                query = query.AsNoTracking().OrderBy(e => e.Id)
-                    .Where(e => e.Id == eventoId);
+                query = query.AsNoTracking().OrderBy(e => e.EventoCodigo)
+                    .Where(e => e.EventoCodigo == eventoId);
 
                 return await query.FirstOrDefaultAsync();
             //}

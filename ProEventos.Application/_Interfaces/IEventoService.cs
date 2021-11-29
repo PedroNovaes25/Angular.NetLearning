@@ -1,4 +1,4 @@
-﻿using ProEventos.Domain;
+﻿using ProEventos.Application.DTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +9,12 @@ namespace ProEventos.Application.Interfaces
 {
     public interface IEventoService
     {
-        Task<Evento> AddEventos(Evento eventoModel, bool includePalestrante);
-        Task<Evento> UpdateEvento(int eventoId, Evento eventoModel);
+        Task<EventoDto> AddEventos(EventoDto eventoModel, bool includePalestrante);
+        Task<EventoDto> UpdateEvento(int eventoId, EventoDto eventoModel);
         Task<bool> DeleteEvento(int eventoId);
 
-        Task<Evento[]> GetAllEventosAsync(bool includePalestrante = false);
-        Task<Evento[]> GetAllEventosByTemaAsync(string tema, bool includePalestrante);
-        Task<Evento> GetEventosByIdAsync(int eventoId, bool includePalestrante);
+        Task<EventoDto[]> GetAllEventosAsync(bool includePalestrante = false);
+        Task<EventoDto[]> GetAllEventosByTemaAsync(string tema, bool includePalestrante);
+        Task<EventoDto> GetEventosByIdAsync(int eventoId, bool includePalestrante);
     }
 }
