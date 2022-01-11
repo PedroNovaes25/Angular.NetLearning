@@ -13,39 +13,60 @@ namespace ProEventos.Application
         private readonly IGeralPersist _geralPersist;
         private readonly IEventoPersist _eventoPersist;
         private readonly IMapper _mapper;
-
-        public EventoService(IGeralPersist geralPersist, IEventoPersist eventoPersist, IMapper mapper)
+        public EventoService(IGeralPersist geralPersist,
+                             IEventoPersist eventoPersist,
+                             IMapper mapper)
         {
-            this._geralPersist = geralPersist;
-            this._eventoPersist = eventoPersist;
-            this._mapper = mapper;
+            _geralPersist = geralPersist;
+            _eventoPersist = eventoPersist;
+            _mapper = mapper;
         }
-
-        public async Task<EventoDto> AddEventos(EventoDto eventoDTO, bool includePalestrante)
+        public async Task<EventoDto> AddEventos(EventoDto model)
         {
             try
             {
-                var evento = _mapper.Map<Evento>(eventoDTO);
+                var evento = _mapper.Map<Evento>(model);
 
                 _geralPersist.Add<Evento>(evento);
-                if (await _geralPersist.SaveChangesAsync()) 
+
+                if (await _geralPersist.SaveChangesAsync())
                 {
-                    var eventoFiltrado =  await _eventoPersist.GetEventosByIdAsync(evento.EventoCodigo, false);
-                    var resultado = _mapper.Map<EventoDto>(eventoFiltrado);
+                    var eventoRetorno = await _eventoPersist.GetEventoByIdAsync(evento.Id, false);
 
-                    return resultado;
+                    return _mapper.Map<EventoDto>(eventoRetorno);
                 }
-
-                throw new Exception($"Não foi possível Adicionar um novo evento");
-
-            }
-            catch (InvalidOperationException iEx)
-            {
-                throw iEx;
+                return null;
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"An error occurred on trying to perform {nameof(AddEventos)}", ex);
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<EventoDto> UpdateEvento(int eventoId, EventoDto model)
+        {
+            try
+            {
+                var evento = await _eventoPersist.GetEventoByIdAsync(eventoId, false);
+                if (evento == null) return null;
+
+                model.Id = evento.Id;
+
+                _mapper.Map(model, evento);
+
+                _geralPersist.Update<Evento>(evento);
+
+                if (await _geralPersist.SaveChangesAsync())
+                {
+                    var eventoRetorno = await _eventoPersist.GetEventoByIdAsync(evento.Id, false);
+
+                    return _mapper.Map<EventoDto>(eventoRetorno);
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
             }
         }
 
@@ -53,121 +74,66 @@ namespace ProEventos.Application
         {
             try
             {
-                var evento = await _eventoPersist.GetEventosByIdAsync(eventoId, false);
-                if (evento == null)
-                    throw new Exception($"Evento não encontrado"); //Return null
+                var evento = await _eventoPersist.GetEventoByIdAsync(eventoId, false);
+                if (evento == null) throw new Exception("Evento para delete não encontrado.");
 
                 _geralPersist.Delete<Evento>(evento);
                 return await _geralPersist.SaveChangesAsync();
-
-                throw new Exception($"Não foi possível atualizar o evento");
-            }
-            catch (InvalidOperationException iEx)
-            {
-                throw new InvalidOperationException(iEx.Message, iEx);
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"An error occurred on trying to perform {nameof(DeleteEvento)}", ex);
+                throw new Exception(ex.Message);
             }
         }
 
-        public async Task<EventoDto> UpdateEvento(int eventoId, EventoDto eventoModel)
+        public async Task<EventoDto[]> GetAllEventosAsync(bool includePalestrantes = false)
         {
             try
             {
+                var eventos = await _eventoPersist.GetAllEventosAsync(includePalestrantes);
+                if (eventos == null) return null;
 
-                var evento = await _eventoPersist.GetEventosByIdAsync(eventoId, false);
-                if (evento == null)
-                    return null;
+                var resultado = _mapper.Map<EventoDto[]>(eventos);
 
-                eventoModel.Id = evento.EventoCodigo;
-                var eventoMapeado = _mapper.Map(eventoModel, evento);
-
-                _geralPersist.Update(eventoMapeado);
-
-                if (await _geralPersist.SaveChangesAsync())
-                {
-                    var eventoFiltrado = await _eventoPersist.GetEventosByIdAsync(eventoMapeado.EventoCodigo, false);
-                    var resultado = _mapper.Map<EventoDto>(eventoFiltrado);
-
-                    return resultado;
-                }
-
-                throw new Exception($"Não foi possível atualizar o evento");
-            }
-            catch (InvalidOperationException iEx)
-            {
-                throw new InvalidOperationException(iEx.Message, iEx);
+                return resultado;
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"An error occurred on trying to perform {nameof(DeleteEvento)}", ex);
-            }
-        }
-        public async Task<EventoDto[]> GetAllEventosAsync(bool includePalestrante = false)
-        {
-            try
-            {
-                var eventos = await _eventoPersist.GetAllEventosAsync(includePalestrante);
-                if (eventos == null)
-                    return null;
-
-                var evento = _mapper.Map<EventoDto[]>(eventos);
-
-                return evento;
-            }
-            catch (InvalidOperationException iEx)
-            {
-                throw new InvalidOperationException(iEx.Message, iEx);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"An error occurred on trying to perform {nameof(GetAllEventosAsync)}", ex);
+                throw new Exception(ex.Message);
             }
         }
 
-        public async Task<EventoDto[]> GetAllEventosByTemaAsync(string tema, bool includePalestrante)
+        public async Task<EventoDto[]> GetAllEventosByTemaAsync(string tema, bool includePalestrantes = false)
         {
             try
             {
-                var eventos = await _eventoPersist.GetAllEventosByTemaAsync(tema, includePalestrante);
-                if (eventos == null)
-                    throw new Exception($"Evento não encontrado"); //Return null
+                var eventos = await _eventoPersist.GetAllEventosByTemaAsync(tema, includePalestrantes);
+                if (eventos == null) return null;
 
-                var evento = _mapper.Map<EventoDto[]>(eventos);
+                var resultado = _mapper.Map<EventoDto[]>(eventos);
 
-                return evento;
-            }
-            catch (InvalidOperationException iEx)
-            {
-                throw new InvalidOperationException(iEx.Message, iEx);
+                return resultado;
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"An error occurred on trying to perform {nameof(GetAllEventosByTemaAsync)}", ex);
+                throw new Exception(ex.Message);
             }
         }
 
-        public async Task<EventoDto> GetEventosByIdAsync(int eventoId, bool includePalestrante)
+        public async Task<EventoDto> GetEventoByIdAsync(int eventoId, bool includePalestrantes = false)
         {
             try
             {
-                var eventos = await _eventoPersist.GetEventosByIdAsync(eventoId, includePalestrante);
-                if (eventos == null)
-                    return null;
+                var evento = await _eventoPersist.GetEventoByIdAsync(eventoId, includePalestrantes);
+                if (evento == null) return null;
 
-                var evento = _mapper.Map<EventoDto>(eventos);
+                var resultado = _mapper.Map<EventoDto>(evento);
 
-                return evento;
-            }
-            catch (InvalidOperationException iEx)
-            {
-                throw new InvalidOperationException(iEx.Message, iEx);
+                return resultado;
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"An error occurred on trying to perform {nameof(GetAllEventosByTemaAsync)}", ex);
+                throw new Exception(ex.Message);
             }
         }
     }
