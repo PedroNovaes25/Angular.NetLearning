@@ -36,12 +36,11 @@ namespace ProEventos.Application
             }
             catch (Exception ex)
             {
-
                 throw new Exception($"Erro ao tentar verificar password. Error: {ex.Message}");
             }
         }
 
-        public async Task<UserDto> CreateAccountAsync(UserDto userDto)
+        public async Task<UserUpdateDto> CreateAccountAsync(UserDto userDto)
         {
             try
             {
@@ -50,7 +49,7 @@ namespace ProEventos.Application
 
                 if (result.Succeeded)
                 {
-                    return _mapper.Map<UserDto>(user);
+                    return _mapper.Map<UserUpdateDto>(user);
                 }
 
                 return null;
@@ -84,10 +83,16 @@ namespace ProEventos.Application
                 var user = await _userPersist.GetUserByUserNameAsync(userUpdateDto.UserName);
                 if (user == null)
                     return null;
+
+                userUpdateDto.Id = user.Id;
+
                 _mapper.Map(userUpdateDto, user);
 
-                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var result = await _userManager.ResetPasswordAsync(user, token, userUpdateDto.Password);
+                if (userUpdateDto.Password != null)
+                {
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    await _userManager.ResetPasswordAsync(user, token, userUpdateDto.Password);
+                }
 
                 _userPersist.Update<User>(user);
 

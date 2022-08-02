@@ -25,7 +25,7 @@ namespace ProEventos.API.Controllers
         }
 
         [HttpGet("GetUser")]
-        public async Task<ActionResult> GetUser() 
+        public async Task<ActionResult> GetUser()
         {
             try
             {
@@ -50,9 +50,18 @@ namespace ProEventos.API.Controllers
 
                 var user = await _accountService.CreateAccountAsync(userDto);
                 if (user != null)
-                    return Ok(user);
+                    return Ok
+                    (
+                        new
+                        {
+                            userName = user.UserName,
+                            primeiroNome = user.PrimeiroNome,
+                            token = _tokenService.CreateToken(user).Result
+                        }
+                    );
 
                 return BadRequest("Usuário não criado, tente novamente mais tarde!");
+
             }
             catch (Exception ex)
             {
@@ -74,10 +83,10 @@ namespace ProEventos.API.Controllers
                 var result = await _accountService.CheckUserPasswordAsync(user, userLogin.Password);
                 if (!result.Succeeded)
                     return Unauthorized();
-                    
+
                 return Ok
                     (
-                        new 
+                        new
                         {
                             userName = user.UserName,
                             primeiroNome = user.PrimeiroNome,
@@ -97,6 +106,9 @@ namespace ProEventos.API.Controllers
         {
             try
             {
+                if (userUpdateDto.UserName != User.GetUserName())
+                    return Unauthorized("Usuário inválido.");
+
                 var user = await _accountService.GetUserByUserNameAsync(User.GetUserName());
                 if (user == null)
                     return Unauthorized("Usuário inválido");
@@ -105,7 +117,12 @@ namespace ProEventos.API.Controllers
                 if (result == null)
                     return NoContent();
 
-                return Ok(result);
+                return Ok(new
+                {
+                    userName = result.UserName,
+                    primeiroNome = result.PrimeiroNome,
+                    token = _tokenService.CreateToken(result).Result
+                });
             }
             catch (Exception ex)
             {
